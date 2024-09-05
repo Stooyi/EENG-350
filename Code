@@ -1,0 +1,84 @@
+import numpy as np
+
+# Define a function for unit impulse signal (for testing purposes)
+def unit_impulse(n):
+    return np.where(n == 0, 1, 0)
+
+# Function to check linearity
+def is_linear(system_func, x1, x2, n):
+    # Scaling factors for superposition
+    a, b = 2, 3
+
+    # Apply system to x1 and x2 individually
+    y1 = system_func(x1, n)
+    y2 = system_func(x2, n)
+
+    # Apply system to a*x1 + b*x2
+    y_combined = system_func(a * x1 + b * x2, n)
+
+    # Compare with the result of applying the system individually and combining outputs
+    return np.allclose(y_combined, a * y1 + b * y2)
+
+# Function to check time-invariance
+def is_time_invariant(system_func, x, n, shift=2):
+    # Apply system to x[n]
+    y_original = system_func(x, n)
+
+    # Shift the input by a given amount
+    x_shifted = np.roll(x, shift)
+
+    # Apply system to shifted input
+    y_shifted = system_func(x_shifted, n)
+
+    # Shift the original output by the same amount
+    y_original_shifted = np.roll(y_original, shift)
+
+    # Compare shifted output to output from shifted input
+    return np.allclose(y_shifted, y_original_shifted)
+
+# System (a): y[n] = n * x[n]
+def system_a(x, n):
+    return n * x
+
+# System (b): y[n] = x[n] + 1
+def system_b(x, n):
+    return x + 1
+
+# System (c): y[n] + 2y[n-1] = 3x[n] + n * x[n-1]
+def system_c(x, n):
+    y = np.zeros_like(x)
+    for i in range(1, len(n)):
+        y[i] = 3 * x[i] + n[i] * x[i-1] - 2 * y[i-1]
+    return y
+
+# System (d): y[n] + 2y[n-1] = 3x[n] + 4x[n-1]
+def system_d(x, n):
+    y = np.zeros_like(x)
+    for i in range(1, len(n)):
+        y[i] = 3 * x[i] + 4 * x[i-1] - 2 * y[i-1]
+    return y
+
+# Test the systems
+n = np.arange(10)
+x1 = unit_impulse(n)  # Test with a unit impulse
+x2 = np.sin(0.2 * np.pi * n)  # Test with a sinusoidal signal
+
+# Checking system (a)
+print("System (a):")
+print("Linear:", is_linear(system_a, x1, x2, n))
+print("Time-invariant:", is_time_invariant(system_a, x1, n))
+
+# Checking system (b)
+print("\nSystem (b):")
+print("Linear:", is_linear(system_b, x1, x2, n))
+print("Time-invariant:", is_time_invariant(system_b, x1, n))
+
+# Checking system (c)
+print("\nSystem (c):")
+print("Linear:", is_linear(system_c, x1, x2, n))
+print("Time-invariant:", is_time_invariant(system_c, x1, n))
+
+# Checking system (d)
+print("\nSystem (d):")
+print("Linear:", is_linear(system_d, x1, x2, n))
+print("Time-invariant:", is_time_invariant(system_d, x1, n))
